@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Core - System Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Premium High-Tech Design Token Architecture */
+    :root {
+      --bg: #0d0d0f;
+      --surface: #141417;
+      --surface-input: #1c1c21;
+      --border: #2a2a32;
+      --text: #f0f0f0;
+      --text-muted: #8888a0;
+      --accent: #47ffe8;
+      --error: #ff4d6d;
+      --glow: rgba(71, 255, 232, 0.15);
+    }
+
+    /* Light Theme Color Swaps */
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-input: #f9fafb;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --accent: #0284c7;
+      --error: #dc2626;
+      --glow: rgba(2, 132, 199, 0.1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Floating Utilities Navigation Bar */
+    .theme-wrapper {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+    }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+    }
+
+    /* Login Form Layout Card */
+    .login-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .brand-section { 
+      text-align: center; 
+      margin-bottom: 36px; 
+    }
+    .brand-section h1 { 
+      font-size: 2.4rem; 
+      font-weight: 800; 
+      letter-spacing: -0.04em; 
+    }
+    .brand-section h1 span { 
+      color: var(--accent); 
+    }
+    .brand-section p { 
+      font-family: 'DM Mono', monospace; 
+      font-size: 0.8rem; 
+      color: var(--text-muted); 
+      margin-top: 6px; 
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .input-wrapper { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+      margin-bottom: 24px; 
+    }
+    label { 
+      font-size: 0.72rem; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 0.06em; 
+      color: var(--text-muted); 
+    }
+    input {
+      background: var(--surface-input);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.95rem;
+      outline: none;
+      width: 100%;
+    }
+    input:focus { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 14px var(--glow);
+    }
+    
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 14px var(--glow);
+    }
+    [data-theme="light"] .btn-submit {
+      color: #fff;
+    }
+    .btn-submit:hover { 
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .error-banner {
+      color: var(--error);
+      background: rgba(255, 77, 109, 0.06);
+      border: 1px solid rgba(255, 77, 109, 0.15);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      margin-bottom: 24px;
+      display: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="theme-wrapper">
+  <button class="theme-toggle" id="theme-switcher" aria-label="Toggle Theme">
+    <span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+  </button>
+</div>
+
+<div class="login-container">
+  <div class="brand-section">
+    <h1>POS<span>.</span>Core</h1>
+    <p>Secure Node Authentication</p>
+  </div>
+
+  <div class="error-banner" id="err-box"></div>
+
+  <form id="login-form">
+    <div class="input-wrapper">
+      <label for="username">Operator ID</label>
+      <input type="text" id="username" required autocomplete="off" placeholder="admin">
+    </div>
+    <div class="input-wrapper">
+      <label for="password">Access Keypass</label>
+      <input type="password" id="password" required placeholder="••••••••">
+    </div>
+    <button type="submit" class="btn-submit">Initialize Session</button>
+  </form>
+</div>
+
+<script>
+  // ── THEME ENFORCEMENT ENGINE ──
+  const themeSwitcher = document.getElementById('theme-switcher');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeText = document.getElementById('theme-text');
+
+  // Pull existing initialization value or default to dark scheme context
+  const cachedTheme = localStorage.getItem('pos_dashboard_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', cachedTheme);
+  updateThemeUI(cachedTheme);
+
+  themeSwitcher.onclick = () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    // Process local modification tree execution rules
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('pos_dashboard_theme', newTheme); // Saved persistently in the browser engine
+    updateThemeUI(newTheme);
+  };
+
+  function updateThemeUI(theme) {
+    if (theme === 'light') {
+      themeIcon.textContent = '🌙';
+      themeText.textContent = 'Dark Mode';
+    } else {
+      themeIcon.textContent = '☀️';
+      themeText.textContent = 'Light Mode';
+    }
+  }
+
+  // ── FORM SUBMISSION GATEWAY ──
+  document.getElementById('login-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const errBox = document.getElementById('err-box');
+    errBox.style.display = 'none';
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        window.location.href = '/index.html';
+      } else {
+        errBox.textContent = data.error || 'Access Denied.';
+        errBox.style.display = 'block';
+      }
+    } catch {
+      errBox.textContent = 'Server Connection Error.';
+      errBox.style.display = 'block';
+    }
+  };
+</script>
+</body>
+</html>

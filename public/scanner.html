@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile POS Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #141417;
+      --surface2: #1c1c21;
+      --border: #2a2a32;
+      --accent: #47ffe8;
+      --accent2: #e8ff47;
+      --text: #f0f0f0;
+      --text2: #8888a0;
+      --green: #4dff91;
+      --red: #ff4d6d;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+    .header span { color: var(--accent); }
+    .header p { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+
+    /* Scanner Viewport Container */
+    #scanner-container {
+      width: 100%;
+      max-width: 450px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+    #interactive-reader {
+      width: 100% !important;
+      border: none !important;
+    }
+    /* Clean up default button styling from the library */
+    #interactive-reader button {
+      background: var(--accent2) !important;
+      color: #000 !important;
+      border: none !important;
+      padding: 10px 20px !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      font-family: 'Syne', sans-serif !important;
+      cursor: pointer !important;
+      margin: 10px auto !important;
+    }
+    #interactive-reader select {
+      background: var(--surface2) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      padding: 8px !important;
+      border-radius: 6px !important;
+      margin: 8px 0 !important;
+    }
+
+    /* Floating Status Feed Toast */
+    .status-panel {
+      width: 100%;
+      max-width: 450px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .status-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); }
+    .status-log { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--accent2); white-space: pre-wrap; word-break: break-all; }
+    
+    /* Grid layout for comprehensive metrics */
+    .product-details {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+    .product-details.visible { display: flex; }
+    
+    .pd-header { margin-bottom: 4px; }
+    .label-tag { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); font-weight: 700; margin-bottom: 2px; }
+    .val-title { font-weight: 700; font-size: 1.15rem; color: #fff; line-height: 1.2; }
+    
+    .pd-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .grid-cell.full-width { grid-column: 1 / -1; }
+    
+    .val-mono { font-family: 'DM Mono', monospace; font-size: 0.88rem; color: var(--text); }
+    .val-mono.buy { color: var(--red); font-weight: 600; }
+    .val-mono.sell { color: var(--green); font-weight: 600; }
+    .val-text { font-size: 0.88rem; color: #fff; font-weight: 600; }
+
+    .details-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>POS<span>.</span>scanner</h1>
+  <p>Align any retail barcode lines inside the camera view</p>
+</div>
+
+<div id="scanner-container">
+  <div id="interactive-reader"></div>
+</div>
+
+<div class="status-panel">
+  <div class="status-title">Activity Feed</div>
+  <div class="status-log" id="log-window">Camera system ready. Awaiting initialization...</div>
+  
+  <div class="product-details" id="product-box">
+    
+    <div class="pd-header">
+      <div class="label-tag">Product Name</div>
+      <div class="val-title" id="p-name">—</div>
+    </div>
+
+    <div class="pd-grid">
+      <div class="grid-cell full-width">
+        <div class="label-tag">Barcode Identity</div>
+        <div class="val-mono" id="p-barcode" style="color:var(--accent)">—</div>
+      </div>
+
+      <div class="grid-cell">
+        <div class="label-tag">Buy Price</div>
+        <div class="val-mono buy" id="p-buy">—</div>
+      </div>
+
+      <div class="grid-cell">
+        <div class="label-tag">Sell Price</div>
+        <div class="val-mono sell" id="p-sell">—</div>
+      </div>
+
+      <div class="grid-cell">
+        <div class="label-tag">Stock Quantity</div>
+        <div class="val-mono" id="p-qty">—</div>
+      </div>
+
+      <div class="grid-cell">
+        <div class="label-tag">Category Partition</div>
+        <div class="val-text" id="p-cat">—</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label-tag">Specification Summary / Details</div>
+      <div class="details-box" id="p-details">—</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const logWindow = document.getElementById('log-window');
+  const productBox = document.getElementById('product-box');
+  
+  // DOM element targets mapped precisely to your 7 parameters
+  const pName = document.getElementById('p-name');
+  const pBarcode = document.getElementById('p-barcode');
+  const pBuy = document.getElementById('p-buy');
+  const pSell = document.getElementById('p-sell');
+  const pQty = document.getElementById('p-qty');
+  const pCat = document.getElementById('p-cat');
+  const pDetails = document.getElementById('p-details');
+
+  let lastScannedCode = "";
+  let throttleTimer = false;
+
+  function updateLog(message, isError = false) {
+    logWindow.style.color = isError ? '#ff4d6d' : '#e8ff47';
+    logWindow.textContent = message;
+  }
+
+  // Send the clean barcode code to the PC server via network API
+  async function processBarcodeLookup(barcode) {
+    if (throttleTimer && barcode === lastScannedCode) return;
+    
+    throttleTimer = true;
+    lastScannedCode = barcode;
+    updateLog(`Transmitting digits: [ ${barcode} ]`);
+
+    try {
+      const response = await fetch(`/api/scan/${barcode}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        updateLog(`✅ Match Sent to PC!`);
+        
+        // Populate all 7 data parameters cleanly from the matching database object
+        pName.textContent = data.name || "Unnamed Product";
+        pBarcode.textContent = data.barcode || barcode;
+        pBuy.textContent = data.buyPrice ? `${data.buyPrice.toFixed(2)} EGP` : "0.00 EGP";
+        pSell.textContent = data.sellPrice ? `${data.sellPrice.toFixed(2)} EGP` : "0.00 EGP";
+        pQty.textContent = data.quantity !== undefined ? `${data.quantity} units` : "0 units";
+        pCat.textContent = data.category || "General";
+        pDetails.textContent = data.details ? data.details.trim() : "No extra specifications provided.";
+        
+        productBox.classList.add('visible');
+        
+        // Vibrate phone slightly to confirm a successful scan (if supported)
+        if (navigator.vibrate) navigator.vibrate(100);
+      } else {
+        updateLog(`❌ PC responds: Unregistered barcode (${barcode})`, true);
+        productBox.classList.remove('visible');
+      }
+    } catch (err) {
+      updateLog("❌ Connection Error: Cannot reach PC host on LAN.", true);
+    }
+
+    // Block scanning the exact same item consecutively for 2.5 seconds
+    setTimeout(() => { throttleTimer = false; }, 2500);
+  }
+
+  function onScanSuccess(decodedText) {
+    let cleanText = decodedText.trim();
+
+    // ── CRITICAL FILTER: IGNORE WEBSITES & QR LINKS ──
+    const isUrlLink = /https?:\/\/[^\s]+|www\.[^\s]+/gi.test(cleanText);
+    const containsLetters = /[a-zA-Z]/g.test(cleanText);
+
+    if (isUrlLink || containsLetters) {
+      return; 
+    }
+
+    // Validate that it is a standard digital barcode (only numbers, between 8 and 14 digits)
+    const isPureBarcode = /^\d{8,14}$/.test(cleanText);
+
+    if (isPureBarcode) {
+      processBarcodeLookup(cleanText);
+    }
+  }
+
+  function onScanFailure(error) {
+    // Quietly catch camera evaluation errors to maintain continuous loop frames
+  }
+
+  // Initialize the reader object
+  const html5QrcodeScanner = new Html5QrcodeScanner("interactive-reader", { 
+    fps: 15,          // Scan speed interval rate
+    qrbox: (width, height) => {
+      // Create a wide rectangular scanning slit perfect for product barcodes
+      return { width: Math.min(width * 0.85, 380), height: 120 };
+    },
+    rememberLastUsedCamera: true,
+    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+  });
+
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+</script>
+
+</body>
+</html>

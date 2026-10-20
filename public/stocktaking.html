@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Core - Stocktaking Audit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* ── DESIGN TOKEN CONFIGURATION ── */
+    :root {
+      --bg: #08080a;
+      --surface: #0f0f12;
+      --surface-hover: #15151a;
+      --border: #1f1f26;
+      --text: #f3f4f6;
+      --text-muted: #66667e;
+      --accent: #00f2fe;
+      --accent-rgb: 0, 242, 254;
+      --error: #ff4d6d;
+      --success: #00ff66;
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface-hover: #f9fafb;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0284c7;
+      --accent-rgb: 2, 132, 199;
+      --error: #dc2626;
+      --success: #16a34a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 40px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── MODULE HEADER ── */
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+
+    .nav-back {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--accent); }
+
+    .title-block h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .title-block p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── LIVE INTERFACE BAR ── */
+    .control-strip {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* ── AUDIT TABLE DATA ARCHITECTURE ── */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(0,0,0,0.15);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .product-info div { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); }
+    .product-info span { font-size: 0.75rem; color: var(--text-muted); }
+
+    .qty-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 90px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+    }
+    .qty-input:focus { border-color: var(--accent); }
+
+    .discrepancy-badge {
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    .variance-none { color: var(--text-muted); }
+    .variance-missing { color: var(--error); background: rgba(255, 77, 109, 0.06); }
+    .variance-surplus { color: var(--success); background: rgba(0, 255, 102, 0.06); }
+
+    .btn-action {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Notification Status Bubble */
+    #status-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+  </style>
+  <script>
+    // Ensure accurate theme syncing instantly
+    const initialTheme = localStorage.getItem('pos_dashboard_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', initialTheme);
+  </script>
+</head>
+<body>
+
+<div class="container">
+  
+  <header class="module-header">
+    <div class="title-block">
+      <a href="/" class="nav-back"><i class="fa-solid fa-arrow-left"></i> Core Hub</a>
+      <h1 style="margin-top: 12px;">Stocktaking Audit</h1>
+      <p>Verify live physical quantities & correct data discrepancies</p>
+    </div>
+  </header>
+
+  <div class="control-strip">
+    <input type="text" id="search-bar" class="search-input" placeholder="Filter inventory by title name or scan barcode entry...">
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Product / Barcode</th>
+          <th>Expected Stock</th>
+          <th>Physical Count</th>
+          <th>Variance</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="inventory-table-body">
+        </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="status-toast"></div>
+
+<script>
+  let localInventoryCache = [];
+
+  // ── INITIALIZE MATRIX PATH ──
+  document.addEventListener('DOMContentLoaded', fetchActiveInventory);
+  document.getElementById('search-bar').addEventListener('input', applyFiltering);
+
+  async function fetchActiveInventory() {
+    try {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Failed to read database records');
+      localInventoryCache = await response.ok ? await response.json() : [];
+      renderInventoryTable(localInventoryCache);
+    } catch (err) {
+      showToast('Error syncing active records database line items.', true);
+    }
+  }
+
+  // ── RENDER ENGINE ──
+  function renderInventoryTable(items) {
+    const tbody = document.getElementById('inventory-table-body');
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">No registered product parameters found matching current criteria.</td></tr>`;
+      return;
+    }
+
+    items.forEach(product => {
+      const tr = document.createElement('tr');
+      
+      tr.innerHTML = `
+        <td>
+          <div class="product-info">
+            <div>${escapeHTML(product.name)}</div>
+            <span>${escapeHTML(product.barcode)} • ${escapeHTML(product.category || 'General')}</span>
+          </div>
+        </td>
+        <td>
+          <span style="font-weight: 500;">${product.quantity}</span> units
+        </td>
+        <td>
+          <input type="number" class="qty-input" id="qty-${product.id}" value="${product.quantity}" min="0" oninput="calculateVariance('${product.id}', ${product.quantity})">
+        </td>
+        <td>
+          <span class="discrepancy-badge variance-none" id="var-${product.id}">0</span>
+        </td>
+        <td style="text-align: right;">
+          <button class="btn-action" style="margin-left: auto;" onclick="commitStockCorrection('${product.id}')">
+            <i class="fa-solid fa-floppy-disk"></i> Update
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      // Initialize zero state calculations cleanly
+      calculateVariance(product.id, product.quantity);
+    });
+  }
+
+  // ── VISUAL VARIANCE FORMULA ENGINE ──
+  window.calculateVariance = function(productId, expectedQty) {
+    const inputElement = document.getElementById(`qty-${productId}`);
+    const badge = document.getElementById(`var-${productId}`);
+    if (!inputElement || !badge) return;
+
+    const physicalValue = parseInt(inputElement.value) || 0;
+    const variance = physicalValue - expectedQty;
+
+    badge.className = 'discrepancy-badge';
+    if (variance === 0) {
+      badge.textContent = '0';
+      badge.classList.add('variance-none');
+    } else if (variance < 0) {
+      badge.textContent = `${variance}`;
+      badge.classList.add('variance-missing');
+    } else {
+      badge.textContent = `+${variance}`;
+      badge.classList.add('variance-surplus');
+    }
+  };
+
+  // ── COMMIT RECORD SET ALTERATION TO SERVER ──
+  window.commitStockCorrection = async function(productId) {
+    const inputElement = document.getElementById(`qty-${productId}`);
+    if (!inputElement) return;
+
+    const correctedQty = parseInt(inputElement.value);
+    if (isNaN(correctedQty) || correctedQty < 0) {
+      showToast('Please specify a valid tracking quantity balance.', true);
+      return;
+    }
+
+    // Locate matching base values from local storage arrays
+    const originalItem = localInventoryCache.find(p => p.id === productId);
+    if (!originalItem) return;
+
+    // Build operational payload matching API configuration models
+    const updatedPayload = {
+      ...originalItem,
+      quantity: correctedQty
+    };
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPayload)
+      });
+
+      if (!response.ok) throw new Error('Write path execution failure');
+      
+      // Update our local structural array reference cache point
+      originalItem.quantity = correctedQty;
+      showToast(`Updated "${originalItem.name}" stock balance cleanly.`);
+      
+      // Re-trigger static line elements variance locking baseline
+      calculateVariance(productId, correctedQty);
+    } catch {
+      showToast('Database validation drop error. Action halted.', true);
+    }
+  };
+
+  // ── UTILITY FILTER ROUTINES ──
+  function applyFiltering() {
+    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const filtered = localInventoryCache.filter(p => 
+      p.name.toLowerCase().includes(query) || 
+      p.barcode.toLowerCase().includes(query)
+    );
+    renderInventoryTable(filtered);
+  }
+
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('status-toast');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    
+    if (isError) {
+      toast.style.background = 'var(--error)';
+      toast.style.color = '#ffffff';
+    } else {
+      toast.style.background = 'var(--accent)';
+      toast.style.color = '#08080a';
+    }
+
+    setTimeout(() => { toast.style.display = 'none'; }, 3500);
+  }
+
+  function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  }
+</script>
+</body>
+</html>

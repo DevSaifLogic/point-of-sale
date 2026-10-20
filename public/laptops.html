@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Laptops</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141417;
+    --surface2: #1c1c21;
+    --surface3: #242429;
+    --border: #2a2a32;
+    --accent: #47ffe8;
+    --accent-light: rgba(71, 255, 232, 0.15);
+    --accent2: #e8ff47;
+    --accent3: #ff6b47;
+    --text: #f0f0f0;
+    --text2: #8888a0;
+    --text3: #555566;
+    --green: #4dff91;
+    --red: #ff4d6d;
+    --radius: 12px;
+    --radius-sm: 7px;
+  }
+
+  body.light-theme {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface2: #f2f4f8;
+    --surface3: #e8ecf3;
+    --border: #d8dfe8;
+    --accent: #0f766e;
+    --accent-light: rgba(15, 118, 110, 0.12);
+    --accent2: #b45309;
+    --accent3: #dc2626;
+    --text: #111827;
+    --text2: #4b5563;
+    --text3: #6b7280;
+    --green: #15803d;
+    --red: #dc2626;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; min-height: 100vh; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: #0d0d0f;
+  }
+  .logo h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  
+  button {
+    font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: all 0.12s;
+  }
+  
+  .nav-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600; font-size: 0.82rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav-btn:hover { border-color: var(--text2); }
+  .theme-toggle {
+    background: var(--surface3); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 220px; min-width: 220px; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 6px; overflow-y: auto;
+    transition: width 0.2s ease, min-width 0.2s ease, padding 0.2s ease;
+  }
+  .sidebar.collapsed {
+    width: 62px; min-width: 62px; padding: 20px 8px;
+  }
+  .sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0 4px 4px; }
+  .sidebar-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+  .sidebar.collapsed .sidebar-title { display: none; }
+  .sidebar-toggle {
+    background: var(--surface3); border: 1px solid var(--border); color: var(--text2);
+    width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.85rem;
+  }
+  .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar-brand-list { display: flex; flex-direction: column; gap: 6px; }
+  .sidebar.collapsed .sidebar-brand-list { gap: 4px; }
+  .sidebar.collapsed .cat-btn {
+    justify-content: center; padding: 8px 0;
+  }
+  .sidebar.collapsed .cat-btn span:first-child,
+  .sidebar.collapsed .cat-btn .cat-count {
+    display: none;
+  }
+  .cat-btn {
+    background: none; border: none; color: var(--text2); font-size: 0.85rem; font-weight: 600;
+    padding: 8px 12px; border-radius: var(--radius-sm); text-align: left;
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+  }
+  .cat-btn:hover { background: var(--surface2); color: var(--text); }
+  .cat-btn.active { background: var(--surface3); color: var(--accent); }
+  .cat-count { background: var(--surface3); border-radius: 20px; padding: 1px 8px; font-size: 0.72rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .cat-btn.active .cat-count { background: var(--accent-light); color: var(--accent); }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 24px; }
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+  #search {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px 10px 38px; border-radius: var(--radius-sm); font-family: 'DM Mono', monospace; font-size: 0.85rem; outline: none; width: 100%;
+  }
+  #search:focus { border-color: var(--accent); }
+
+  /* Cart Panel (Active Basket) */
+  .cart-panel {
+    width: 360px; min-width: 360px; background: var(--surface);
+    border-left: 1px solid var(--border); display: flex; flex-direction: column;
+    transition: all 0.2s ease-in-out;
+  }
+  /* Class to hide active basket dynamically */
+  .cart-panel.hidden {
+    display: none !important;
+  }
+
+  .cart-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .cart-header h2 { font-size: 1.1rem; font-weight: 800; }
+  .cart-count-badge { background: var(--accent); color: #000; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; font-family: 'DM Mono'; }
+  .cart-items { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  
+  .cart-item-node {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .cart-item-info { min-width: 0; flex: 1; }
+  .cart-item-name { font-size: 0.88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cart-item-price { font-size: 0.78rem; font-family: 'DM Mono'; color: var(--green); margin-top: 2px; }
+  .cart-item-ctrls { display: flex; align-items: center; gap: 8px; }
+  .cart-qty-btn { background: var(--surface3); border: 1px solid var(--border); color: #fff; width: 24px; height: 24px; border-radius: 4px; font-weight: 700; }
+  .cart-qty-btn:hover { background: var(--border); }
+  .cart-qty-val { font-family: 'DM Mono'; font-size: 0.88rem; font-weight: 600; width: 20px; text-align: center; }
+
+  .cart-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--surface2); display: flex; flex-direction: column; gap: 12px; }
+  .cart-total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 1rem; }
+  .checkout-btn {
+    background: var(--green); color: #0d0d0f; font-weight: 800; border: none; padding: 12px; border-radius: var(--radius-sm); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; width: 100%;
+  }
+  .checkout-btn:hover { opacity: 0.9; }
+  .checkout-btn:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: auto; min-width: 960px; }
+  thead tr { border-bottom: 2px solid var(--border); }
+  th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); padding: 0 10px 10px; text-align: left; font-weight: 600; cursor: pointer; user-select: none; transition: color 0.1s; position: relative; white-space: nowrap; }
+  th:hover { color: var(--accent); }
+  th.sort-active { color: var(--accent); }
+  th.right, td.right { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 14px 16px; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  .td-name { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .td-price { color: var(--green); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .td-spec-detail { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  
+  /* Action buttons inside rows */
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .row-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    transition: all 0.1s;
+    background: var(--surface3);
+    color: #fff;
+  }
+  .row-btn.add-btn {
+    background: var(--green);
+    color: #0d0d0f;
+    border-color: var(--green);
+  }
+  .row-btn.add-btn:hover {
+    opacity: 0.9;
+  }
+  .row-btn.edit-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .detail-panel { width: 340px; min-width: 340px; background: var(--surface); border-left: 1px solid var(--border); padding: 24px; overflow-y: auto; display: none; flex-direction: column; gap: 16px; }
+  .detail-panel.open { display: flex; }
+  .dp-close { background: var(--surface3); border: none; color: var(--text2); width: 28px; height: 28px; border-radius: 7px; align-self: flex-end; }
+  .dp-name { font-size: 1.2rem; font-weight: 800; }
+  .dp-serial-block { background: var(--surface2); border: 1px solid var(--border); padding: 12px; text-align: center; border-radius: var(--radius); }
+  .dp-serial-val { font-family: 'DM Mono'; color: var(--accent); font-size: 0.85rem; word-break: break-all; }
+  .dp-prices { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .dp-price-card { background: var(--surface2); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); }
+  .dp-price-label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; }
+  .dp-price-val { font-family: 'DM Mono'; font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+  .dp-price-val.buy { color: var(--red); }
+  .dp-price-val.sell { color: var(--green); }
+  .dp-at-box { background: linear-gradient(135deg, rgba(255,153,0,0.16), rgba(255,153,0,0.08)); border: 1px solid rgba(255,153,0,0.35); border-radius: var(--radius); padding: 12px; }
+  .dp-at-label { font-size: 0.65rem; color: var(--accent2); text-transform: uppercase; font-weight: 700; }
+  .dp-at-value { margin-top: 4px; font-weight: 700; color: #ffbf47; font-family: 'DM Mono'; word-break: break-word; }
+  .dp-specs-box { background: var(--surface2); border: 1px solid var(--border); padding: 14px; border-radius: var(--radius); font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+  .dp-spec-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; font-weight: 700; }
+  .dp-spec-grid { display: grid; gap: 8px; }
+  .dp-spec-item { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .dp-spec-label { color: var(--text3); font-weight: 600; flex: 0 0 42%; }
+  .dp-spec-val { color: var(--text); font-family: 'DM Mono', monospace; text-align: right; flex: 1; word-break: break-word; }
+  .dp-spec-val.accent { color: var(--green); font-weight: 700; }
+
+  .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 28px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 1.15rem; font-weight: 800; }
+  .modal-close { background: var(--surface3); border: none; color: var(--text2); width: 30px; height: 30px; border-radius: 6px; }
+  
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.7rem; text-transform: uppercase; color: var(--text2); font-weight: 600; }
+  input, textarea, select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: var(--radius-sm); font-family: 'DM Mono'; font-size: 0.85rem; outline: none; width: 100%; }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); padding: 8px 16px; border-radius: var(--radius-sm); }
+  .btn-save { background: var(--accent); color: #000; font-weight: 700; border: none; padding: 8px 20px; border-radius: var(--radius-sm); }
+  .err-msg { color: var(--red); font-size: 0.78rem; font-family: 'DM Mono'; margin-top: 4px; }
+
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface3); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.2s; font-family: 'DM Mono'; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error { border-color: var(--red); color: var(--red); }
+
+  .charger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+  .charger-card { background: var(--surface2); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; }
+  .charger-card:hover { border-color: var(--accent2); background: var(--surface3); }
+  .charger-title { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 6px; }
+  .charger-specs { font-size: 0.8rem; color: var(--text2); font-family: 'DM Mono'; margin-bottom: 12px; }
+  .charger-price { color: var(--green); font-family: 'DM Mono'; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">💻</div>
+    <h1>Laptops</h1>
+  </div>
+  <div class="header-actions">
+    <a href="/reports" class="nav-btn" style="margin-right: 5px;">📊 Analytics & Reports</a>
+    <a href="/products" class="nav-btn" style="color: var(--accent2); margin-right: 5px;"> 🛍️  Products</a>
+    <a href="/sales" class="nav-btn" style="color: var(--green); margin-right: 5px;">💸 Sales Dashboard</a>
+    <button class="theme-toggle" id="theme-toggle" type="button">🌙 Light Mode</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Manufacturers</div>
+      <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="Collapse manufacturers">◂</button>
+    </div>
+    <div class="sidebar-brand-list" id="sidebar-brand-list"></div>
+  </div>
+
+  <div class="content" id="main-content-area">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search" placeholder="Search by model, processor... Click row to view specs."/>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <colgroup id="column-group">
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="resizable-th" id="col-model" data-sort-key="model">Model <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-cpu" data-sort-key="cpu">CPU <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-ram" data-sort-key="ram">RAM <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-storage" data-sort-key="storage">Storage <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-gpu" data-sort-key="gpu">GPU <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-touch" data-sort-key="touch">Touch & Resolution <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-price" data-sort-key="price">Price <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-at" data-sort-key="at">AT <span class="sort-icon"></span></th>
+            <th class="resizable-th" id="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="laptop-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="detail-panel">
+    <button class="dp-close" id="dp-close">✕</button>
+    <div class="dp-name" id="dp-name">—</div>
+    <div class="dp-serial-block">
+      <label style="font-size:0.6rem; display:block; margin-bottom:2px;">Serial Number</label>
+      <div class="dp-serial-val" id="dp-serial">—</div>
+    </div>
+    <div class="dp-prices">
+      <div class="dp-price-card"><div class="dp-price-label">Sell Price</div><div class="dp-price-val sell" id="dp-sell">—</div></div>
+    </div>
+    <div class="dp-at-box">
+      <div class="dp-at-label">At</div>
+      <div class="dp-at-value" id="dp-at">—</div>
+    </div>
+    <div class="dp-specs-box" id="dp-specs-container"></div>
+    <div style="display:flex; gap:8px; margin-top:auto">
+      <button class="btn-cancel" style="width:100%; border-color:var(--red); color:var(--red)" id="dp-del-btn">Delete</button>
+    </div>
+  </div>
+
+  <div class="cart-panel hidden" id="cart-panel">
+    <div class="cart-header">
+      <h2>Active Basket</h2>
+      <span class="cart-count-badge" id="cart-count">0 units</span>
+    </div>
+    
+    <div class="cart-items" id="cart-items-container"></div>
+    
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Order Total:</span>
+        <span id="cart-total-val" style="color:var(--accent)">0.00 EGP</span>
+      </div>
+      <button class="checkout-btn" id="checkout-btn" disabled>Confirm Sale & Select Charger</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="toast"></div>
+
+<script>
+  let allLaptops = [];
+  let currentCart = [];
+  let activeCategory = 'all';
+  let editingId = null;
+  let viewingLaptopId = null;
+
+  let currentSortKey = 'model';
+  let currentSortOrder = 'asc';
+  let suppressNextClick = false;
+
+  async function loadLaptops() {
+    try {
+      const response = await fetch('/api/laptops');
+      allLaptops = await response.json();
+      renderSidebar();
+      renderTable();
+    } catch {
+      showToast("Backend connection failure on Laptops API", "error");
+    }
+  }
+
+  function applyTheme(theme) {
+    const body = document.body;
+    const toggle = document.getElementById('theme-toggle');
+    const isLight = theme === 'light';
+    body.classList.toggle('light-theme', isLight);
+    if (toggle) {
+      toggle.textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+    }
+    localStorage.setItem('laptops-theme', theme);
+  }
+
+  function renderSidebar() {
+    const brands = ['all', ...new Set(allLaptops.map(l => l.name || l.Manufacturer || 'Unknown Brand'))];
+    const list = document.getElementById('sidebar-brand-list');
+    list.innerHTML = '';
+
+    brands.forEach(brand => {
+      const count = brand === 'all' ? allLaptops.length : allLaptops.filter(l => (l.name || l.Manufacturer || 'Unknown Brand') === brand).length;
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (activeCategory === brand ? ' active' : '');
+      
+      let displayName = brand === 'all' ? '💻 All Brands' : brand;
+      if (displayName.length > 20) displayName = displayName.substring(0, 18) + '...';
+      
+      btn.innerHTML = `<span>${esc(displayName)}</span><span class="cat-count">${count}</span>`;
+      btn.onclick = () => { activeCategory = brand; renderSidebar(); renderTable(); };
+      list.appendChild(btn);
+    });
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const collapsed = sidebar.classList.toggle('collapsed');
+    toggleBtn.textContent = collapsed ? '▸' : '◂';
+    toggleBtn.title = collapsed ? 'Expand manufacturers' : 'Collapse manufacturers';
+  }
+
+  function getSearchableText(laptop) {
+    const values = [
+      laptop.model || laptop.Model || '',
+      laptop.at || '',
+      laptop.sellPrice || '',
+      laptop.TouchScreen || laptop.Touch || '',
+      laptop.serialNumber || laptop.BiosSerialNumber || '',
+      laptop.OSCaption || laptop.os || '',
+      laptop.specs?.CpuName || laptop.CpuName || '',
+      Array.isArray(laptop.GPUs) ? laptop.GPUs.map(gpu => gpu?.Name || gpu?.model || gpu).join(' ') : (laptop.GPUs || laptop.specs?.GPUs || ''),
+      laptop.specs?.RamTotalGB || laptop.RamTotalGB || '',
+      getStorageText(laptop),
+      laptop.Batteries?.[0]?.BatteryHealth || laptop.batteryHealth || '',
+      laptop.notes || laptop.Notes || '',
+      laptop.name || laptop.Manufacturer || ''
+    ];
+
+    return values.join(' ').toLowerCase();
+  }
+
+  function getGpuText(laptop) {
+    const gpus = laptop.GPUs || laptop.specs?.GPUs;
+    if (Array.isArray(gpus) && gpus.length > 0) {
+      return gpus.map(g => g.Name || g.model || g).join(", ");
+    } else if (gpus) {
+      return typeof gpus === 'string' ? gpus : JSON.stringify(gpus);
+    }
+    return "Integrated Graphics";
+  }
+
+  function getStorageText(laptop) {
+    const disks = laptop.Disks || laptop.specs?.Disks;
+    if (Array.isArray(disks) && disks.length > 0) {
+      return disks.map(d => `${d.SizeGB || d.size || '?'}GB ${d.Model || d.type || ''}`).join(" + ");
+    } else if (disks) {
+      return typeof disks === 'string' ? disks : JSON.stringify(disks);
+    }
+    return "N/A";
+  }
+
+  function getTouchText(laptop) {
+    const touch = laptop.TouchScreen || laptop.Touch || laptop.touch || '';
+    return touch ? String(touch) : 'N/A';
+  }
+
+  function getResolutionText(laptop) {
+    const resolution = laptop.Resolution || laptop.DisplayResolution || laptop.resolution || '';
+    return resolution ? String(resolution) : 'N/A';
+  }
+
+  function handleSort(key) {
+    if (currentSortKey === key) {
+      currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSortKey = key;
+      currentSortOrder = 'asc';
+    }
+    renderTable();
+  }
+
+  function initHeaderSorting() {
+    document.querySelectorAll('th.resizable-th[data-sort-key]').forEach(header => {
+      header.addEventListener('click', () => {
+        const key = header.dataset.sortKey;
+        if (key) {
+          handleSort(key);
+        }
+      });
+    });
+  }
+
+  function updateSortIcons() {
+    const headers = ['model', 'cpu', 'ram', 'storage', 'gpu', 'touch', 'price', 'at'];
+    headers.forEach(h => {
+      const th = document.getElementById(`col-${h}`);
+      if (!th) return;
+      const iconSpan = th.querySelector('.sort-icon');
+      th.classList.remove('sort-active');
+      
+      if (h === currentSortKey) {
+        th.classList.add('sort-active');
+        iconSpan.textContent = currentSortOrder === 'asc' ? ' ▲' : ' ▼';
+      } else {
+        iconSpan.textContent = '';
+      }
+    });
+  }
+
+  function renderTable() {
+    const query = document.getElementById('search').value.trim().toLowerCase();
+    const tbody = document.getElementById('laptop-tbody');
+    tbody.innerHTML = '';
+
+    updateSortIcons();
+
+    let items = allLaptops.filter(l => {
+      const brand = l.name || l.Manufacturer || 'Unknown Brand';
+      const matchesCategory = activeCategory === 'all' || brand === activeCategory;
+      const matchesQuery = !query || getSearchableText(l).includes(query);
+      
+      return matchesCategory && matchesQuery;
+    });
+
+    items.sort((a, b) => {
+      let valA, valB;
+      if (currentSortKey === 'model') {
+        valA = (a.model || a.Model || '').toLowerCase();
+        valB = (b.model || b.Model || '').toLowerCase();
+      } else if (currentSortKey === 'cpu') {
+        valA = (a.specs?.CpuName || a.CpuName || '').toLowerCase();
+        valB = (b.specs?.CpuName || b.CpuName || '').toLowerCase();
+      } else if (currentSortKey === 'ram') {
+        valA = parseInt(a.specs?.RamTotalGB || a.RamTotalGB || 0);
+        valB = parseInt(b.specs?.RamTotalGB || b.RamTotalGB || 0);
+      } else if (currentSortKey === 'storage') {
+        valA = getStorageText(a).toLowerCase();
+        valB = getStorageText(b).toLowerCase();
+      } else if (currentSortKey === 'gpu') {
+        valA = getGpuText(a).toLowerCase();
+        valB = getGpuText(b).toLowerCase();
+      } else if (currentSortKey === 'touch') {
+        valA = (getTouchText(a) + ' ' + getResolutionText(a)).toLowerCase();
+        valB = (getTouchText(b) + ' ' + getResolutionText(b)).toLowerCase();
+      } else if (currentSortKey === 'price') {
+        valA = parseFloat(a.sellPrice || a.SellPrice || 0);
+        valB = parseFloat(b.sellPrice || b.SellPrice || 0);
+      } else if (currentSortKey === 'at') {
+        valA = (a.at || '').toLowerCase();
+        valB = (b.at || '').toLowerCase();
+      }
+
+      if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    items.forEach(l => {
+      const model = l.model || l.Model || 'Generic Unit';
+      const cpu = l.specs?.CpuName || l.CpuName || 'Standard Processor';
+      const ram = `${l.specs?.RamTotalGB || l.RamTotalGB || '8'} GB`;
+      const storage = getStorageText(l);
+      const gpu = getGpuText(l);
+      const touch = `${getTouchText(l)} / ${getResolutionText(l)}`;
+      const price = fmt(l.sellPrice || 0);
+      const at = l.at || 'N/A';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="td-name" title="${esc(model)}">${esc(model)}</td>
+        <td class="td-spec-detail" title="${esc(cpu)}">${esc(cpu)}</td>
+        <td class="td-spec-detail" title="${esc(ram)}">${esc(ram)}</td>
+        <td class="td-spec-detail" title="${esc(storage)}">${esc(storage)}</td>
+        <td class="td-spec-detail" title="${esc(gpu)}">${esc(gpu)}</td>
+        <td class="td-spec-detail" title="${esc(touch)}">${esc(touch)}</td>
+        <td class="td-price" title="${esc(price)}">${esc(price)}</td>
+        <td class="td-spec-detail" title="${esc(at)}">${esc(at)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="row-btn add-btn" onclick="event.stopPropagation(); addToCart('${l.id}')">＋ Add</button>
+          </div>
+        </td>
+      `;
+      tr.onclick = () => openInspectionDrawer(l.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addToCart(laptopId) {
+    const matched = allLaptops.find(l => l.id === laptopId);
+    if (!matched) return;
+    const stockQty = matched.quantity !== undefined ? matched.quantity : 1;
+    
+    if (stockQty <= 0) {
+      showToast(`Unit out of tracking warehouse reserves!`, "error");
+      return;
+    }
+
+    const existing = currentCart.find(item => item.id === laptopId);
+    if (existing) {
+      if (existing.checkoutQty >= stockQty) {
+        showToast(`Cannot sell more units than system inventory metrics.`, "error");
+        return;
+      }
+      existing.checkoutQty++;
+    } else {
+      currentCart.push({ 
+        id: matched.id, 
+        name: `${matched.model || matched.Model}`, 
+        sellPrice: matched.sellPrice || 0, 
+        checkoutQty: 1 
+      });
+    }
+    renderCart();
+  }
+
+  function changeCartQty(laptopId, adjustment) {
+    const lineItem = currentCart.find(item => item.id === laptopId);
+    if (!lineItem) return;
+    const matched = allLaptops.find(l => l.id === laptopId);
+    const stockQty = matched.quantity !== undefined ? matched.quantity : 1;
+
+    lineItem.checkoutQty += adjustment;
+    if (lineItem.checkoutQty > stockQty) {
+      showToast(`Threshold cap structural boundary hit!`, "error");
+      lineItem.checkoutQty = stockQty;
+    }
+    if (lineItem.checkoutQty <= 0) {
+      currentCart = currentCart.filter(item => item.id !== laptopId);
+    }
+    renderCart();
+  }
+
+  function renderCart() {
+    const panel = document.getElementById('cart-panel');
+    const container = document.getElementById('cart-items-container');
+    container.innerHTML = '';
+    let runningTotal = 0, itemsCount = 0;
+
+    // Toggle Active Basket visibility depending on items
+    if (currentCart.length === 0) {
+      panel.classList.add('hidden');
+      return;
+    } else {
+      panel.classList.remove('hidden');
+    }
+
+    currentCart.forEach(item => {
+      runningTotal += (item.sellPrice * item.checkoutQty);
+      itemsCount += item.checkoutQty;
+      const node = document.createElement('div');
+      node.className = 'cart-item-node';
+      node.innerHTML = `
+        <div class="cart-item-info">
+          <div class="cart-item-name">${esc(item.name)}</div>
+          <div class="cart-item-price">${fmt(item.sellPrice * item.checkoutQty)}</div>
+        </div>
+        <div class="cart-item-ctrls">
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', -1)">-</button>
+          <span class="cart-qty-val">${item.checkoutQty}</span>
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', 1)">+</button>
+        </div>
+      `;
+      container.appendChild(node);
+    });
+
+    document.getElementById('cart-count').textContent = `${itemsCount} unit(s)`;
+    document.getElementById('cart-total-val').textContent = fmt(runningTotal);
+    document.getElementById('checkout-btn').disabled = currentCart.length === 0;
+  }
+
+  function switchToChargersPage() {
+    const contentArea = document.getElementById('main-content-area');
+    
+    const mockChargers = [
+      { id: 'ch1', name: 'HP Smart AC Adapter', specs: '65W / 19.5V / Blue Tip', price: 450 },
+      { id: 'ch2', name: 'Dell Type-C Power Supply', specs: '130W / USB-PD ExpressCharge', price: 1200 },
+      { id: 'ch3', name: 'Lenovo ThinkPad Adapter', specs: '95W / 20V / Square Tip', price: 650 },
+      { id: 'ch4', name: 'Universal Multi-Tip Charger', specs: '90W / Adjustable Voltage', price: 500 }
+    ];
+
+    let chargersHtml = `
+      <h2 style="font-family:'Syne'; margin-bottom: 8px;">Select a Matching Charger</h2>
+      <p style="color:var(--text2); font-size:0.9rem; margin-bottom: 24px;">Complete the sale flow by selecting one charger to accompany the laptop hardware bundle.</p>
+      <div class="charger-grid">
+    `;
+
+    mockChargers.forEach(charger => {
+      chargersHtml += `
+        <div class="charger-card" onclick="selectChargerAndCheckout('${charger.id}', '${charger.name}', ${charger.price})">
+          <div class="charger-title">🔌 ${esc(charger.name)}</div>
+          <div class="charger-specs">${esc(charger.specs)}</div>
+          <div class="charger-price">${fmt(charger.price)}</div>
+        </div>
+      `;
+    });
+
+    chargersHtml += `</div>`;
+    contentArea.innerHTML = chargersHtml;
+  }
+
+  async function selectChargerAndCheckout(chargerId, chargerName, chargerPrice) {
+    // Add charger to backend payload
+    currentCart.push({
+      id: chargerId,
+      name: `[Bundle Charger] ${chargerName}`,
+      sellPrice: chargerPrice,
+      checkoutQty: 1
+    });
+    renderCart();
+
+    try {
+      showToast("Processing order with charger bundle...", "success");
+      const response = await fetch('/api/sales/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: currentCart })
+      });
+
+      if (response.ok) {
+        showToast(`Hardware & Charger Sale Authorized!`, "success");
+        const blobObj = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blobObj);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `HardwareBundleReceipt_${Date.now()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        currentCart = [];
+        renderCart();
+        location.reload(); 
+      } else {
+        const parsedResult = await response.json();
+        showToast(parsedResult.error || "Checkout validation failure", "error");
+      }
+    } catch {
+      showToast("Network processing matrix failures", "error");
+    }
+  }
+
+  document.getElementById('checkout-btn').onclick = () => {
+    switchToChargersPage();
+  };
+
+function openInspectionDrawer(id) {
+    viewingLaptopId = id;
+    const target = allLaptops.find(l => l.id === id);
+    if (!target) return;
+
+    const brand = target.name || target.Manufacturer || 'Unknown Brand';
+    const model = target.model || target.Model || 'Generic Model';
+
+    document.getElementById('dp-name').textContent = `${brand} ${model}`;
+    document.getElementById('dp-serial').textContent = target.serialNumber || target.BiosSerialNumber || 'N/A';
+    document.getElementById('dp-sell').textContent = fmt(target.sellPrice || 0);
+    document.getElementById('dp-at').textContent = target.at || 'Not set';
+
+    const container = document.getElementById('dp-specs-container');
+    const gpuEntries = Array.isArray(target.GPUs) ? target.GPUs.filter(Boolean) : [];
+    const disk = target.Disks?.[0] || null;
+    const battery = target.Batteries?.[0] || null;
+    const gpuRows = gpuEntries.length
+      ? gpuEntries.map(gpu => {
+          const name = gpu?.Name || gpu?.model || 'GPU';
+          const vram = gpu?.VramGB != null && gpu?.VramGB !== '' ? `${gpu.VramGB} GB` : 'N/A';
+          return `<div class="dp-spec-item"><span class="dp-spec-label">GPU</span><span class="dp-spec-val">${esc(name)} • ${esc(vram)}</span></div>`;
+        }).join('')
+      : '<div class="dp-spec-item"><span class="dp-spec-label">GPU</span><span class="dp-spec-val">N/A</span></div>';
+
+    container.innerHTML = `
+      <div class="dp-spec-title">System Details</div>
+      <div class="dp-spec-grid">
+        <div class="dp-spec-item"><span class="dp-spec-label">Sell Price</span><span class="dp-spec-val accent">${esc(fmt(target.sellPrice || 0))}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Model</span><span class="dp-spec-val">${esc(model)}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Touch</span><span class="dp-spec-val">${esc(target.TouchScreen || target.Touch || 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Serial Number</span><span class="dp-spec-val">${esc(target.BiosSerialNumber || target.serialNumber || 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">OS</span><span class="dp-spec-val">${esc(target.OSCaption || 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">CPU</span><span class="dp-spec-val">${esc(target.CpuName || 'N/A')}</span></div>
+        ${gpuRows}
+        <div class="dp-spec-item"><span class="dp-spec-label">RAM</span><span class="dp-spec-val">${esc(target.RamTotalGB ? `${target.RamTotalGB} GB` : 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Storage</span><span class="dp-spec-val">${esc(disk ? `${disk.SizeGB || ''}${disk.SizeGB ? ' GB ' : ''}${disk.Type || ''}`.trim() || 'N/A' : 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Battery Health</span><span class="dp-spec-val">${esc(battery?.BatteryHealth || 'N/A')}</span></div>
+        <div class="dp-spec-item"><span class="dp-spec-label">Notes</span><span class="dp-spec-val">${esc(target.notes || target.Notes || 'None')}</span></div>
+      </div>
+    `;
+
+    const basketRow = document.createElement('div');
+    basketRow.style.marginTop = '15px';
+    basketRow.innerHTML = `<button class="btn-save" style="width:100%; background:var(--green);" onclick="addToCart('${target.id}')">＋ Add to Basket</button>`;
+    container.appendChild(basketRow);
+
+    document.getElementById('detail-panel').classList.add('open');
+  }
+  
+  document.getElementById('dp-close').onclick = () => document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('sidebar-toggle').onclick = toggleSidebar;
+
+  document.getElementById('dp-del-btn').onclick = async () => {
+    if (!confirm("Delete structural device database log entirely?")) return;
+    try {
+      const res = await fetch(`/api/laptops/${viewingLaptopId}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast("Database safely cleared of device entity", "success");
+        document.getElementById('detail-panel').classList.remove('open');
+        loadLaptops();
+      }
+    } catch { showToast("Error removing structural parameters", "error"); }
+  };
+
+  document.getElementById('search').addEventListener('input', renderTable);
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+    applyTheme(nextTheme);
+  });
+
+  function fmt(v) { return (parseFloat(v)||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' EGP'; }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show ' + type;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  window.onload = () => {
+    initHeaderSorting();
+    const savedTheme = localStorage.getItem('laptops-theme') || 'dark';
+    applyTheme(savedTheme);
+    loadLaptops();
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "point-of-sale-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "start:extended": "node server2.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "xlsx": "^0.18.5"
+  }
+}

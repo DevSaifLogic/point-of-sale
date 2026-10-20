@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Core Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* ── ADVANCED DESIGN TOKEN MATRIX ── */
+    :root {
+      --bg: #08080a;
+      --surface: #0f0f12;
+      --surface-hover: #15151a;
+      --border: #1f1f26;
+      --border-hover: #32323d;
+      --text: #f3f4f6;
+      --text-muted: #66667e;
+      --accent: #00f2fe;
+      --accent-rgb: 0, 242, 254;
+      --card-glow: rgba(0, 242, 254, 0.03);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface-hover: #f9fafb;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0284c7;
+      --accent-rgb: 2, 132, 199;
+      --card-glow: rgba(2, 132, 199, 0.04);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 60px 40px;
+      overflow-x: hidden;
+      transition: background-color 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .hub-container {
+      width: 100%;
+      max-width: 1340px;
+      margin: 0 auto;
+    }
+
+    /* ── PREMIUM HEADER ARCHITECTURE ── */
+    .hub-header {
+      margin-bottom: 54px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brand h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .brand h1 span {
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
+    }
+    .brand p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      transition: all 0.2s ease;
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.15);
+      transform: translateY(-1px);
+    }
+
+    /* ── HYPER-MODERN GRID ENGINE ── */
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── GLASS CARD COMPONENT ── */
+    .hub-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 180px;
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Subtle left corner structural flag indicator */
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 0;
+      width: 3px;
+      height: 20px;
+      background: var(--border-hover);
+      border-radius: 0 4px 4px 0;
+      transition: all 0.25s ease;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .module-index {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      color: var(--text-muted);
+      transition: all 0.25s ease;
+    }
+
+    .module-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 28px;
+      color: var(--text);
+    }
+
+    .card-bottom {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .action-arrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all 0.2s ease;
+    }
+
+    /* ── CARD HOVER ANIMATION MATRIX ── */
+    .hub-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px var(--card-glow), inset 0 0 12px rgba(var(--accent-rgb), 0.02);
+    }
+
+    .hub-card:hover::before {
+      background: var(--accent);
+      height: 32px;
+      top: 22px;
+    }
+
+    .hub-card:hover .card-icon {
+      color: var(--accent);
+      transform: scale(1.08);
+      text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4);
+    }
+
+    .hub-card:hover .action-arrow {
+      opacity: 1;
+      transform: translateX(0);
+      color: var(--accent);
+    }
+
+    /* ── FRAMEWORK FOOTER ── */
+    .hub-footer {
+      margin-top: auto;
+      padding-top: 60px;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Responsive Scale Breakpoints */
+    @media (max-width: 768px) {
+      body { padding: 40px 20px; }
+      .hub-header { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .theme-toggle { width: 100%; justify-content: center; }
+      .hub-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script>
+    /* Instant Theme Memory Loader */
+    const initialTheme = localStorage.getItem('pos_dashboard_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', initialTheme);
+  </script>
+</head>
+<body>
+
+<div class="hub-container">
+
+  <header class="hub-header">
+    <div class="brand">
+      <h1>POS<span>.</span>Core</h1>
+      <p>Enterprise Resource & Retail Management Suite</p>
+    </div>
+    <button class="theme-toggle" id="theme-switcher" aria-label="Toggle Theme">
+      <span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+    </button>
+  </header>
+
+  <main class="hub-grid">
+
+    <a href="products" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-04</span>
+        <i class="fa-solid fa-list-check card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Product List</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="laptops" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-02</span>
+        <i class="fa-solid fa-laptop card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Laptops</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="stocktaking" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-01</span>
+        <i class="fa-solid fa-boxes-stacked card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Stocktaking</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sales" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-03</span>
+        <i class="fa-solid fa-cash-register card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Sales Terminal</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+
+
+    <a href="cash-out" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-05</span>
+        <i class="fa-solid fa-money-bill-transfer card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Cash Out</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sales-return" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-06</span>
+        <i class="fa-solid fa-arrow-rotate-left card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Sales Return</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="purchase-return" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-07</span>
+        <i class="fa-solid fa-truck-ramp-box card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Purchase Return</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="reports" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-08</span>
+        <i class="fa-solid fa-chart-line card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Reports</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="stores" class="hub-card">
+      <div class="card-top">
+        <span class="module-index">SYS // M-09</span>
+        <i class="fa-solid fa-store card-icon"></i>
+      </div>
+      <div>
+        <h2 class="module-title">Stores Consignment</h2>
+        <div class="card-bottom">
+          <span class="action-arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+  </main>
+
+  <footer class="hub-footer">
+    <div>Integrated POS Architecture Framework v3.4.0</div>
+     <p>&copy; <span id="year"></span> POS Core</p>
+  </footer>
+
+</div>
+
+<script>
+  // ── THEME SWITCH ENGINE ──
+  const themeSwitcher = document.getElementById('theme-switcher');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeText = document.getElementById('theme-text');
+
+  const savedTheme = localStorage.getItem('pos_dashboard_theme') || 'dark';
+  updateThemeUI(savedTheme);
+
+  themeSwitcher.onclick = () => {
+    const activeTheme = document.documentElement.getAttribute('data-theme');
+    const targetTheme = activeTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', targetTheme);
+    localStorage.setItem('pos_dashboard_theme', targetTheme);
+    updateThemeUI(targetTheme);
+  };
+
+  function updateThemeUI(theme) {
+    if (theme === 'light') {
+      themeIcon.textContent = '🌙';
+      themeText.textContent = 'Dark Mode';
+    } else {
+      themeIcon.textContent = '☀️';
+      themeText.textContent = 'Light Mode';
+    }
+    document.getElementById("year").textContent = new Date().getFullYear();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Products Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141417;
+    --surface2: #1c1c21;
+    --surface3: #242429;
+    --border: #2a2a32;
+    --accent: #47ffe8;
+    --accent-light: rgba(71, 255, 232, 0.15);
+    --accent2: #e8ff47;
+    --accent3: #ff6b47;
+    --text: #f0f0f0;
+    --text2: #8888a0;
+    --text3: #555566;
+    --green: #4dff91;
+    --red: #ff4d6d;
+    --radius: 12px;
+    --radius-sm: 7px;
+  }
+
+  body.light-theme {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface2: #f2f4f8;
+    --surface3: #e8ecf3;
+    --border: #d8dfe8;
+    --accent: #0f766e;
+    --accent-light: rgba(15, 118, 110, 0.12);
+    --accent2: #b45309;
+    --accent3: #dc2626;
+    --text: #111827;
+    --text2: #4b5563;
+    --text3: #6b7280;
+    --green: #15803d;
+    --red: #dc2626;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; min-height: 100vh; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: #0d0d0f;
+  }
+  .logo h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  button {
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .nav-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav-btn:hover { border-color: var(--text2); }
+
+  .theme-toggle {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  #scan-qr-btn,
+  #add-product-btn {
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  #scan-qr-btn {
+    background: var(--surface3);
+    color: var(--accent2);
+  }
+  #scan-qr-btn:hover { border-color: var(--accent2); }
+
+  #add-product-btn {
+    background: var(--accent);
+    color: #0d0d0f;
+    border: none;
+    padding: 9px 20px;
+    font-weight: 700;
+  }
+  #add-product-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    transition: width 0.2s ease, min-width 0.2s ease, padding 0.2s ease;
+  }
+  .sidebar.collapsed {
+    width: 62px;
+    min-width: 62px;
+    padding: 20px 8px;
+  }
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 6px 0 4px 4px;
+  }
+  .sidebar-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+  }
+  .sidebar-toggle {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar.collapsed .sidebar-title { display: none; }
+  .sidebar.collapsed .cat-btn {
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .sidebar.collapsed .cat-btn span:first-child,
+  .sidebar.collapsed .cat-btn .cat-count {
+    display: none;
+  }
+  .cat-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .cat-btn:hover { background: var(--surface2); color: var(--text); }
+  .cat-btn.active { background: var(--surface3); color: var(--accent); }
+  .cat-count {
+    background: var(--surface3);
+    border-radius: 20px;
+    padding: 1px 8px;
+    font-size: 0.72rem;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+  .cat-btn.active .cat-count { background: var(--accent-light); color: var(--accent); }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 24px; }
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+  #search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px 10px 38px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    width: 100%;
+  }
+  #search:focus { border-color: var(--accent); }
+  .search-type-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    outline: none;
+    width: 140px;
+    min-width: 140px;
+  }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: auto; min-width: 900px; }
+  thead tr { border-bottom: 2px solid var(--border); }
+  th {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    padding: 0 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.1s ease;
+    position: relative;
+  }
+  th:hover { color: var(--accent); }
+  th.sort-active { color: var(--accent); }
+  .sort-icon { margin-left: 6px; font-size: 0.7rem; color: var(--accent); }
+  th.right, td.right { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 14px 16px; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  .td-name { font-weight: 700; color: var(--text); }
+  .td-cat {
+    display: inline-block;
+    background: var(--surface3);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    color: var(--text2);
+    margin-top: 3px;
+  }
+  .td-barcode { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--text3); }
+  .td-price { font-family: 'DM Mono', monospace; font-weight: 500; }
+  .td-buy { color: var(--red); }
+  .td-sell { color: var(--green); }
+  .td-qty { font-family: 'DM Mono', monospace; font-weight: 600; }
+  .qty-low { color: var(--red); }
+  .qty-ok { color: var(--text); }
+
+  .btn-action-trigger {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-left: 4px;
+  }
+  .btn-action-trigger:hover { border-color: var(--accent); color: var(--accent); }
+
+  .cart-panel {
+    width: 360px;
+    min-width: 360px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease-in-out;
+  }
+  .cart-panel.hidden { display: none !important; }
+  .cart-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .cart-header h2 { font-size: 1.1rem; font-weight: 800; }
+  .cart-count-badge { background: var(--accent); color: #000; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; font-family: 'DM Mono'; }
+  .cart-items { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .cart-item-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .cart-item-info { min-width: 0; flex: 1; }
+  .cart-item-name { font-size: 0.88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cart-item-price { font-size: 0.78rem; font-family: 'DM Mono'; color: var(--green); margin-top: 2px; }
+  .cart-item-ctrls { display: flex; align-items: center; gap: 8px; }
+  .cart-qty-btn { background: var(--surface3); border: 1px solid var(--border); color: #fff; width: 24px; height: 24px; border-radius: 4px; font-weight: 700; }
+  .cart-qty-btn:hover { background: var(--border); }
+  .cart-qty-val { font-family: 'DM Mono'; font-size: 0.88rem; font-weight: 600; width: 20px; text-align: center; }
+
+  .cart-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--surface2); display: flex; flex-direction: column; gap: 12px; }
+  .cart-total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 1rem; }
+  .checkout-btn {
+    background: var(--green);
+    color: #0d0d0f;
+    font-weight: 800;
+    border: none;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 100%;
+  }
+  .checkout-btn:hover { opacity: 0.9; }
+  .checkout-btn:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; }
+
+  .detail-panel {
+    width: 340px;
+    min-width: 340px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 24px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .detail-panel.open { display: flex; }
+  .dp-close { background: var(--surface3); border: none; color: var(--text2); width: 28px; height: 28px; border-radius: 7px; align-self: flex-end; }
+  .dp-name { font-size: 1.2rem; font-weight: 800; }
+  .dp-barcode-block { background: var(--surface2); border: 1px solid var(--border); padding: 12px; text-align: center; border-radius: var(--radius); }
+  .dp-barcode-val { font-family: 'DM Mono'; color: var(--accent); font-size: 1rem; word-break: break-all; }
+  .dp-prices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dp-price-card { background: var(--surface2); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); }
+  .dp-price-label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; }
+  .dp-price-val { font-family: 'DM Mono'; font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+  .dp-price-val.buy { color: var(--red); }
+  .dp-price-val.sell { color: var(--green); }
+  .dp-desc-box { background: var(--surface2); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
+
+  .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 28px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 1.15rem; font-weight: 800; }
+  .modal-close { background: var(--surface3); border: none; color: var(--text2); width: 30px; height: 30px; border-radius: 6px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.7rem; text-transform: uppercase; color: var(--text2); font-weight: 600; }
+  input, textarea, select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: var(--radius-sm); font-family: 'DM Mono'; font-size: 0.85rem; outline: none; width: 100%; }
+  input:focus, textarea:focus { border-color: var(--accent); }
+
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); padding: 8px 16px; border-radius: var(--radius-sm); }
+  .btn-save { background: var(--accent); color: #000; font-weight: 700; border: none; padding: 8px 20px; border-radius: var(--radius-sm); }
+  .err-msg { color: var(--red); font-size: 0.78rem; font-family: 'DM Mono'; margin-top: 4px; }
+
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface3); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.2s; font-family: 'DM Mono'; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏪</div>
+    <h1>Products</h1>
+  </div>
+  <div class="header-actions">
+    <a href="/reports" class="nav-btn" style="margin-right: 5px;">📊 Analytics & Reports</a>
+    <a href="/laptops" class="nav-btn" style="color: var(--accent2); margin-right: 5px;"> 💻  Laptops</a>
+    <a href="/sales" class="nav-btn" style="color: var(--green); margin-right: 5px;">💸 Sales Dashboard</a>
+    <button id="scan-qr-btn">📱 Connect Phone</button>
+    <button id="add-product-btn">＋ Add Product</button>
+    <button class="theme-toggle" id="theme-toggle" type="button">☀️ Light Mode</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Categories</div>
+      <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="Collapse categories">◂</button>
+    </div>
+    <div id="sidebar-category-list"></div>
+  </div>
+
+  <div class="content">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search" placeholder="Search"/>
+      </div>
+      <select class="search-type-select" id="search-type" aria-label="Search type">
+        <option value="all">Search: All</option>
+        <option value="name">Name</option>
+        <option value="barcode">Barcode</option>
+        <option value="sellPrice">Sell Price</option>
+        <option value="details">Details</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort-key="name">Product <span class="sort-icon"></span></th>
+            <th data-sort-key="barcode">Barcode <span class="sort-icon"></span></th>
+            <th class="right" data-sort-key="sellPrice">Sell Price <span class="sort-icon"></span></th>
+            <th class="right" data-sort-key="quantity">Qty <span class="sort-icon"></span></th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="product-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="detail-panel">
+    <button class="dp-close" id="dp-close">✕</button>
+    <div class="dp-name" id="dp-name">—</div>
+    <div class="dp-barcode-block"><div class="dp-barcode-val" id="dp-barcode">—</div></div>
+    <div class="dp-prices">
+      <div class="dp-price-card"><div class="dp-price-label">Buy Price</div><div class="dp-price-val buy" id="dp-buy">—</div></div>
+      <div class="dp-price-card"><div class="dp-price-label">Sell Price</div><div class="dp-price-val sell" id="dp-sell">—</div></div>
+    </div>
+    <div class="dp-desc-box" id="dp-details">—</div>
+    <div style="display:flex; gap:8px; margin-top:auto">
+      <button class="btn-save" style="flex:1" id="dp-edit-btn">Edit Specs</button>
+      <button class="btn-cancel" style="border-color:var(--red); color:var(--red)" id="dp-del-btn">Delete</button>
+    </div>
+  </div>
+
+  <div class="cart-panel hidden" id="cart-panel">
+    <div class="cart-header">
+      <h2>Active Basket</h2>
+      <span class="cart-count-badge" id="cart-count">0 items</span>
+    </div>
+    
+    <div class="cart-items" id="cart-items-container"></div>
+    
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Order Total:</span>
+        <span id="cart-total-val" style="color:var(--accent)">0.00 EGP</span>
+      </div>
+      <button class="checkout-btn" id="checkout-btn" disabled>Confirm Sale & Print Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Product</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Product Name *</label>
+        <input type="text" id="f-name"/>
+      </div>
+      <div class="form-group full">
+        <label>Barcode *</label>
+        <input type="text" id="f-barcode"/>
+      </div>
+      <div class="form-group">
+        <label>Buy Price (EGP)</label>
+        <input type="number" id="f-buy" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Sell Price (EGP)</label>
+        <input type="number" id="f-sell" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" id="f-qty"/>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" id="f-cat"/>
+      </div>
+      <div class="form-group full">
+        <label>Details</label>
+        <textarea id="f-details"></textarea>
+      </div>
+    </div>
+    <div class="err-msg" id="form-err"></div>
+    <div class="form-actions">
+      <button class="btn-cancel" id="form-cancel">Cancel</button>
+      <button class="btn-save" id="form-save">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let allProducts = [];
+  let currentCart = [];
+  let activeCategory = 'all';
+  let editingId = null;
+  let viewingProductId = null;
+  let currentSortKey = 'name';
+  let currentSortOrder = 'asc';
+
+  async function loadProducts() {
+    try {
+      const response = await fetch('/api/products');
+      allProducts = await response.json();
+      renderSidebar();
+      renderTable();
+    } catch {
+      showToast("Backend connection failure", "error");
+    }
+  }
+
+  function applyTheme(theme) {
+    const body = document.body;
+    const toggle = document.getElementById('theme-toggle');
+    const isLight = theme === 'light';
+    body.classList.toggle('light-theme', isLight);
+    if (toggle) {
+      toggle.textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+    }
+    localStorage.setItem('products-theme', theme);
+  }
+
+  function renderSidebar() {
+    const rawCategories = [...new Set(allProducts.map(p => p.category || 'General'))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    const cats = ['all', ...rawCategories];
+    const list = document.getElementById('sidebar-category-list');
+    list.innerHTML = '';
+
+    cats.forEach(cat => {
+      const count = cat === 'all' ? allProducts.length : allProducts.filter(p => (p.category || 'General') === cat).length;
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (activeCategory === cat ? ' active' : '');
+      btn.innerHTML = `<span>${cat === 'all' ? '🗂 All' : cat}</span><span class="cat-count">${count}</span>`;
+      btn.onclick = () => { activeCategory = cat; renderSidebar(); renderTable(); };
+      list.appendChild(btn);
+    });
+  }
+
+  function updateSortUI() {
+    document.querySelectorAll('th[data-sort-key]').forEach(th => {
+      const isActive = th.dataset.sortKey === currentSortKey;
+      th.classList.toggle('sort-active', isActive);
+      const icon = th.querySelector('.sort-icon');
+      if (icon) {
+        icon.textContent = isActive ? (currentSortOrder === 'asc' ? ' ▲' : ' ▼') : '';
+      }
+    });
+  }
+
+  function renderTable() {
+    const query = document.getElementById('search').value.trim().toLowerCase();
+    const searchType = document.getElementById('search-type').value;
+    const tbody = document.getElementById('product-tbody');
+    tbody.innerHTML = '';
+
+    let items = allProducts.filter(p => {
+      const matchesCategory = activeCategory === 'all' || (p.category || 'General') === activeCategory;
+      const detailsText = (p.details || '').toLowerCase();
+      const sellPriceText = String(p.sellPrice).toLowerCase();
+      const nameText = (p.name || '').toLowerCase();
+      const barcodeText = String(p.barcode || '').toLowerCase();
+
+      const matchesQuery = !query || (() => {
+        switch (searchType) {
+          case 'name':
+            return nameText.includes(query);
+          case 'barcode':
+            return barcodeText.includes(query);
+          case 'sellPrice':
+            return sellPriceText.includes(query);
+          case 'details':
+            return detailsText.includes(query);
+          case 'all':
+          default:
+            return nameText.includes(query) || barcodeText.includes(query) || sellPriceText.includes(query) || detailsText.includes(query);
+        }
+      })();
+
+      return matchesCategory && matchesQuery;
+    });
+
+    items.sort((a, b) => {
+      let comparison = 0;
+      switch (currentSortKey) {
+        case 'barcode':
+          comparison = String(a.barcode || '').localeCompare(String(b.barcode || ''), undefined, { sensitivity: 'base' });
+          break;
+        case 'sellPrice':
+          comparison = (a.sellPrice || 0) - (b.sellPrice || 0);
+          break;
+        case 'quantity':
+          comparison = (a.quantity || 0) - (b.quantity || 0);
+          break;
+        case 'name':
+        default:
+          comparison = (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+      }
+      return currentSortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    updateSortUI();
+
+    items.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="td-name">${esc(p.name)}</div>
+          <div class="td-cat">${esc(p.category || 'General')}</div>
+        </td>
+        <td class="td-barcode">${esc(p.barcode)}</td>
+        <td class="td-price td-sell right">${fmt(p.sellPrice)}</td>
+        <td class="td-qty right ${p.quantity <= 3 ? 'qty-low' : 'qty-ok'}">${p.quantity}</td>
+        <td class="right" style="white-space:nowrap">
+          <button class="btn-action-trigger" style="border-color:var(--green); color:var(--green)" onclick="event.stopPropagation(); addToCart('${p.id}')">＋ Basket</button>
+        </td>
+      `;
+      tr.onclick = () => openInspectionDrawer(p.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addToCart(productId) {
+    const matchedProduct = allProducts.find(p => p.id === productId);
+    if (!matchedProduct) return;
+    if (matchedProduct.quantity <= 0) {
+      showToast(`Cannot add ${matchedProduct.name} - Out of stock!`, "error");
+      return;
+    }
+
+    const existingLineItem = currentCart.find(item => item.id === productId);
+    if (existingLineItem) {
+      if (existingLineItem.checkoutQty >= matchedProduct.quantity) {
+        showToast(`Cannot sell more than warehouse stock (${matchedProduct.quantity})`, "error");
+        return;
+      }
+      existingLineItem.checkoutQty++;
+    } else {
+      currentCart.push({ id: matchedProduct.id, name: matchedProduct.name, sellPrice: matchedProduct.sellPrice, checkoutQty: 1 });
+    }
+    renderCart();
+  }
+
+  function changeCartQty(productId, adjustment) {
+    const lineItem = currentCart.find(item => item.id === productId);
+    if (!lineItem) return;
+    const matchedProduct = allProducts.find(p => p.id === productId);
+    lineItem.checkoutQty += adjustment;
+    if (lineItem.checkoutQty > matchedProduct.quantity) {
+      showToast(`Max stock threshold hit!`, "error");
+      lineItem.checkoutQty = matchedProduct.quantity;
+    }
+    if (lineItem.checkoutQty <= 0) {
+      currentCart = currentCart.filter(item => item.id !== productId);
+    }
+    renderCart();
+  }
+
+  function renderCart() {
+    const container = document.getElementById('cart-items-container');
+    document.getElementById('cart-panel').classList.toggle('hidden', currentCart.length === 0);
+    container.innerHTML = '';
+    let runningTotal = 0, itemsCount = 0;
+
+    currentCart.forEach(item => {
+      runningTotal += (item.sellPrice * item.checkoutQty);
+      itemsCount += item.checkoutQty;
+      const node = document.createElement('div');
+      node.className = 'cart-item-node';
+      node.innerHTML = `
+        <div class="cart-item-info">
+          <div class="cart-item-name">${esc(item.name)}</div>
+          <div class="cart-item-price">${fmt(item.sellPrice * item.checkoutQty)}</div>
+        </div>
+        <div class="cart-item-ctrls">
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', -1)">-</button>
+          <span class="cart-qty-val">${item.checkoutQty}</span>
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', 1)">+</button>
+        </div>
+      `;
+      container.appendChild(node);
+    });
+
+    document.getElementById('cart-count').textContent = `${itemsCount} item(s)`;
+    document.getElementById('cart-total-val').textContent = fmt(runningTotal);
+    document.getElementById('checkout-btn').disabled = currentCart.length === 0;
+  }
+
+  document.getElementById('checkout-btn').onclick = async () => {
+    try {
+      const checkoutButton = document.getElementById('checkout-btn');
+      checkoutButton.disabled = true;
+
+      const response = await fetch('/api/sales/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: currentCart })
+      });
+
+      if (response.ok) {
+        showToast(`Sale authorized! Downloading receipt...`, "success");
+        
+        // Trigger the dynamic Excel Receipt automatic browser download path
+        const blobObj = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blobObj);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `Receipt_${Date.now()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        currentCart = [];
+        renderCart();
+        await loadProducts();
+      } else {
+        const parsedResult = await response.json();
+        showToast(parsedResult.error || "Checkout rejected", "error");
+        checkoutButton.disabled = false;
+      }
+    } catch {
+      showToast("Network processing errors", "error");
+      document.getElementById('checkout-btn').disabled = false;
+    }
+  };
+
+  function openInspectionDrawer(id) {
+    viewingProductId = id;
+    const target = allProducts.find(p => p.id === id);
+    if (!target) return;
+    document.getElementById('dp-name').textContent = target.name;
+    document.getElementById('dp-barcode').textContent = target.barcode;
+    document.getElementById('dp-buy').textContent = fmt(target.buyPrice);
+    document.getElementById('dp-sell').textContent = fmt(target.sellPrice);
+    document.getElementById('dp-details').textContent = target.details || "No specifications given.";
+    document.getElementById('detail-panel').classList.add('open');
+  }
+  document.getElementById('dp-close').onclick = () => document.getElementById('detail-panel').classList.remove('open');
+
+  document.getElementById('dp-edit-btn').onclick = () => {
+    const target = allProducts.find(p => p.id === viewingProductId);
+    if (!target) return;
+    document.getElementById('detail-panel').classList.remove('open');
+    openFormModal(target);
+  };
+
+  document.getElementById('dp-del-btn').onclick = async () => {
+    if (!confirm("Delete product database record entry?")) return;
+    try {
+      const res = await fetch(`/api/products/${viewingProductId}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast("Product deleted safely", "success");
+        document.getElementById('detail-panel').classList.remove('open');
+        loadProducts();
+      }
+    } catch { showToast("Error removing item tracking parameters", "error"); }
+  };
+
+  function openFormModal(productObj = null) {
+    document.getElementById('form-err').textContent = '';
+    if (productObj) {
+      editingId = productObj.id;
+      document.getElementById('modal-title').textContent = "Modify Product Fields";
+      document.getElementById('f-name').value = productObj.name;
+      document.getElementById('f-barcode').value = productObj.barcode;
+      document.getElementById('f-buy').value = productObj.buyPrice;
+      document.getElementById('f-sell').value = productObj.sellPrice;
+      document.getElementById('f-qty').value = productObj.quantity;
+      document.getElementById('f-cat').value = productObj.category || 'General';
+      document.getElementById('f-details').value = productObj.details;
+    } else {
+      editingId = null;
+      document.getElementById('modal-title').textContent = "Register New Product Entry";
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-barcode').value = '';
+      document.getElementById('f-buy').value = '';
+      document.getElementById('f-sell').value = '';
+      document.getElementById('f-qty').value = '';
+      document.getElementById('f-cat').value = 'General';
+      document.getElementById('f-details').value = '';
+    }
+    document.getElementById('product-modal').classList.add('open');
+  }
+
+  document.getElementById('add-product-btn').onclick = () => openFormModal(null);
+  document.getElementById('modal-close').onclick = () => document.getElementById('product-modal').classList.remove('open');
+  document.getElementById('form-cancel').onclick = () => document.getElementById('product-modal').classList.remove('open');
+
+  document.getElementById('form-save').onclick = async () => {
+    const payload = {
+      name: document.getElementById('f-name').value.trim(),
+      barcode: document.getElementById('f-barcode').value.trim(),
+      buyPrice: parseFloat(document.getElementById('f-buy').value) || 0,
+      sellPrice: parseFloat(document.getElementById('f-sell').value) || 0,
+      quantity: parseInt(document.getElementById('f-qty').value) || 0,
+      category: document.getElementById('f-cat').value.trim() || 'General',
+      details: document.getElementById('f-details').value.trim()
+    };
+
+    if (!payload.name || !payload.barcode) {
+      document.getElementById('form-err').textContent = "Parameters missing.";
+      return;
+    }
+
+    const targetUrl = editingId ? `/api/products/${editingId}` : '/api/products';
+    const targetMethod = editingId ? 'PUT' : 'POST';
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: targetMethod,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        showToast("Database committed cleanly", "success");
+        document.getElementById('product-modal').classList.remove('open');
+        loadProducts();
+      } else {
+        const errorData = await response.json();
+        document.getElementById('form-err').textContent = errorData.error || "Operation failed.";
+      }
+    } catch {
+      document.getElementById('form-err').textContent = "Network error processing updates.";
+    }
+  };
+
+  document.getElementById('search').addEventListener('input', renderTable);
+  document.getElementById('search-type').addEventListener('change', renderTable);
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+    applyTheme(nextTheme);
+  });
+
+  document.querySelectorAll('th[data-sort-key]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sortKey;
+      if (currentSortKey === key) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortKey = key;
+        currentSortOrder = 'asc';
+      }
+      renderTable();
+    });
+  });
+
+  document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    const collapsed = sidebar.classList.toggle('collapsed');
+    document.getElementById('sidebar-toggle').textContent = collapsed ? '▸' : '◂';
+  });
+
+  function fmt(v) { return (parseFloat(v)||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' EGP'; }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show ' + type;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  window.onload = () => {
+    const savedTheme = localStorage.getItem('products-theme') || 'dark';
+    applyTheme(savedTheme);
+    loadProducts();
+  };
+</script>
+</body>
+</html>
